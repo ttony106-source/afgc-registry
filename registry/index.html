@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fiduciary Governance Certification™</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2c5282;
+            --accent: #3182ce;
+            --text: #2d3748;
+            --light: #f7fafc;
+            --border: #e2e8f0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--light);
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        header p { opacity: 0.9; font-size: 1.1rem; }
+        main { background: white; padding: 2rem; margin-top: -1rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+        h3 { color: var(--secondary); margin: 1.5rem 0 0.75rem; }
+        ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.5rem; }
+        p { margin-bottom: 1rem; }
+        .highlight { background: #ebf8ff; padding: 1rem; border-left: 4px solid var(--accent); margin: 1rem 0; border-radius: 0 4px 4px 0; }
+        .warning { background: #fffaf0; border-left-color: #dd6b20; }
+        .registry-link { background: var(--primary); color: white; padding: 1rem; border-radius: 4px; display: block; text-align: center; text-decoration: none; margin: 1rem 0; font-family: monospace; word-break: break-all; }
+        .registry-link:hover { background: var(--secondary); }
+        .status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600; margin-right: 0.5rem; }
+        .status-active { background: #c6f6d5; color: #276749; }
+        .status-expired { background: #feebc8; color: #c05621; }
+        .status-revoked { background: #fed7d7; color: #c53030; }
+        footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.9rem; margin-top: 2rem; border-top: 1px solid var(--border); }
+        @media (max-width: 600px) { .container { padding: 1rem; } header h1 { font-size: 1.5rem; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AI Fiduciary Governance Certification™</h1>
+            <p>Verifying Governance Authority, Not Technology</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <main>
+            <h2>What Certification Means</h2>
+            
+            <h3>Purpose</h3>
+            <p>AI Fiduciary Governance Certification™ exists to verify governance authority, not to evaluate AI technology.</p>
+            <p>The certification confirms that an organization's use of AI operates within documented human fiduciary authority, with enforceable controls over publication, eligibility, and revocation.</p>
+
+            <h3>What This Certification Confirms</h3>
+            <p>A certified entity has demonstrated that:</p>
+            <ul>
+                <li>AI is used only in defined, disclosed contexts</li>
+                <li>Human authority is explicitly documented and retained</li>
+                <li>Unauthorized publication or representation is prevented by system controls</li>
+                <li>Certification status is publicly verifiable</li>
+                <li>Certification can be revoked at any time with immediate effect</li>
+            </ul>
+            <div class="highlight">
+                <strong>Certification status reflects governance readiness, not outcomes.</strong>
+            </div>
+
+            <h3>What This Certification Does NOT Confirm</h3>
+            <p>This certification does not:</p>
+            <ul>
+                <li>Approve or endorse AI models, tools, or vendors</li>
+                <li>Certify technical safety, accuracy, or performance</li>
+                <li>Guarantee legal, regulatory, or insurance outcomes</li>
+                <li>Replace regulatory approval, audits, or compliance programs</li>
+            </ul>
+            <div class="highlight warning">
+                <strong>No claims of "compliance," "safety," or "approval" are made.</strong>
+            </div>
+
+            <h2>How Public Verification Works</h2>
+            <p>Certification status is published in a read-only public registry.</p>
+            <p>Each entry includes:</p>
+            <ul>
+                <li>Certification ID</li>
+                <li>Legal entity name</li>
+                <li>Jurisdiction</li>
+                <li>Status (Active / Expired / Revoked)</li>
+                <li>Issuance and expiration dates</li>
+                <li>High-level scope of certified AI use</li>
+            </ul>
+            <div class="highlight">
+                <strong>Verification is performed by Certification ID only.</strong>
+            </div>
+
+            <h2>Public Registry</h2>
+            <p><strong>Registry Endpoint:</strong></p>
+            <a href="afgc-registry.json" class="registry-link">https://ttony106-source.github.io/afgc-registry/afgc-registry.json</a>
+            <p>This registry is:</p>
+            <ul>
+                <li>Machine-readable (JSON)</li>
+                <li>Updated automatically</li>
+                <li>Limited to eligible, approved certifications only</li>
+            </ul>
+            <div class="highlight warning">
+                <strong>Entries are removed immediately upon revocation or expiration.</strong>
+            </div>
+
+            <h2>Certification Status Definitions</h2>
+            <p>
+                <span class="status status-active">Active</span>
+                Certification is valid and publicly recognized.
+            </p>
+            <p>
+                <span class="status status-expired">Expired</span>
+                Certification term has ended and is no longer valid.
+            </p>
+            <p>
+                <span class="status status-revoked">Revoked</span>
+                Certification has been withdrawn with immediate effect.
+            </p>
+            <div class="highlight warning">
+                <strong>Revocation overrides publication state and does not require explanation.</strong>
+            </div>
+
+            <h2>Revocation Authority</h2>
+            <p>Certification may be revoked if:</p>
+            <ul>
+                <li>Human authority changes without disclosure</li>
+                <li>Certified scope expands beyond what was issued</li>
+                <li>Override or governance controls are impaired</li>
+                <li>Material misrepresentation is identified</li>
+            </ul>
+            <div class="highlight warning">
+                <strong>Revocation is unilateral and immediate.</strong>
+            </div>
+
+            <h2>Intended Audience</h2>
+            <p>This certification is designed for:</p>
+            <ul>
+                <li>Boards and fiduciaries</li>
+                <li>Insurers and underwriters</li>
+                <li>Development Finance Institutions (DFIs)</li>
+                <li>Regulators and examiners</li>
+                <li>Institutional partners</li>
+            </ul>
+            <div class="highlight warning">
+                <strong>It is not a marketing badge or consumer trust seal.</strong>
+            </div>
+
+            <h2>Use of Certification</h2>
+            <h3>Certified entities may:</h3>
+            <ul>
+                <li>Reference certification status by ID</li>
+                <li>Link to the public registry entry</li>
+            </ul>
+            <h3>Certified entities may not:</h3>
+            <ul>
+                <li>Claim compliance, approval, or safety</li>
+                <li>Modify scope language</li>
+                <li>Represent certification as regulatory endorsement</li>
+            </ul>
+            <div class="highlight warning">
+                <strong>Misuse may result in revocation.</strong>
+            </div>
+
+            <h2>Contact</h2>
+            <p>For verification questions or institutional inquiries, contact the issuing authority directly.</p>
+
+        </main>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p><strong>AI Fiduciary Governance Certification™</strong> confirms governance status only.</p>
+            <p>It does not constitute legal advice, regulatory approval, or insurance coverage.</p>
+        </div>
+    </footer>
+</body>
+</html>

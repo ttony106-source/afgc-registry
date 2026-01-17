@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/afgc-registry.schema.json",
+  "title": "AI Fiduciary Governance Certification Registry Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["registry_version", "generated_utc", "entries"],
+  "properties": {
+    "registry_version": { "type": "string", "pattern": "^v\\d+\\.\\d+$" },
+    "generated_utc": { "type": "string", "format": "date-time" },
+    "publisher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "disclaimer"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "disclaimer": { "type": "string", "minLength": 1 }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/registryEntry" }
+    }
+  },
+  "$defs": {
+    "registryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "certification_id",
+        "entity_legal_name",
+        "jurisdiction",
+        "entity_type",
+        "status",
+        "issued_date",
+        "expiration_date",
+        "scope_high_level"
+      ],
+      "properties": {
+        "certification_id": { "type": "string", "pattern": "^AFGC-\\d{4}-\\d{4}$" },
+        "entity_legal_name": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "jurisdiction": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "entity_type": { "type": "string", "enum": ["Trust", "Corporation", "NGO", "Public Entity", "SPV", "Other"] },
+        "status": { "type": "string", "enum": ["Active", "Expired", "Revoked"] },
+        "issued_date": { "type": "string", "format": "date" },
+        "expiration_date": { "type": "string", "format": "date" },
+        "scope_high_level": { "type": "string", "minLength": 10, "maxLength": 280 },
+        "notes_public": { "type": "string", "maxLength": 240 }
+      }
+    }
+  }
+}

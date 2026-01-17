@@ -1,9 +1,20 @@
 {
   "registry_version": "v1.0",
-  "generated_utc": "2026-01-17T15:25:26.154Z",
+  "generated_utc": "2026-01-17T18:43:45.365Z",
   "publisher": {
     "name": "AI Fiduciary Governance Certification™",
     "disclaimer": "Registry confirms certification status only. It does not monitor operations and does not constitute legal advice, regulatory approval, or insurance coverage assurance. Certification applies only to the scope stated at issuance."
   },
-  "entries": []
+  "entries": [
+    {
+      "certification_id": "AFGC-2026-0001",
+      "entity_legal_name": "Kamakazi Capital Inc.",
+      "jurisdiction": "United States (DE)",
+      "entity_type": "Corporation",
+      "status": "Active",
+      "issued_date": "2026-01-17",
+      "expiration_date": "2027-01-17",
+      "scope_high_level": "Internal decision-support AI used within documented human fiduciary authority for governance, oversight, and administrative workflows."
+    }
+  ]
 }

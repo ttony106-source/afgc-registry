@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/afgc-registry.schema.json",
+  "$id": "https://ttony106-source.github.io/afgc-registry/afgc-registry.schema.json",
   "title": "AI Fiduciary Governance Certification Registry Schema",
   "type": "object",
   "additionalProperties": false,

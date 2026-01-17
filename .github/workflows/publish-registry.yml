@@ -1,0 +1,60 @@
+name: Publish AFGC Registry
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build registry JSON from Airtable
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          AIRTABLE_VIEW_NAME: ${{ secrets.AIRTABLE_VIEW_NAME }}
+          REGISTRY_PUBLISHER_NAME: ${{ secrets.REGISTRY_PUBLISHER_NAME }}
+          REGISTRY_DISCLAIMER: ${{ secrets.REGISTRY_DISCLAIMER }}
+        run: |
+          node scripts/build_registry.mjs
+
+      - name: Commit changes (if any)
+        run: |
+          git config user.name "afgc-registry-bot"
+          git config user.email "afgc-registry-bot@users.noreply.github.com"
+          git add registry/afgc-registry.json registry/afgc-registry.schema.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update registry JSON"
+            git push
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: registry
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

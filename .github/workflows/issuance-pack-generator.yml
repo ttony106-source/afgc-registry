@@ -1,0 +1,47 @@
+name: Generate Issuance Packs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no Airtable updates)'
+        required: false
+        default: 'false'
+        type: boolean
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+
+env:
+  AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_TOKEN }}
+  AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+  AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
+
+jobs:
+  generate-packs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyairtable reportlab pikepdf requests
+
+      - name: Run Issuance Pack Generator
+        run: |
+          python scripts/generate_issuance_pack.py
+        env:
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+
+      - name: Upload generated packs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: issuance-packs
+          path: output/*.pdf
+          retention-days: 30
+          if-no-files-found: ignore

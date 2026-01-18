@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-AFGC Issuance Pack Generator
+AFGC Issuance Pack Generator v1.1
 
 Generates PDF/A-2b compliant certification issuance packs for approved certifications.
-Reads from Airtable Certification_Registry, generates PDFs, commits to /packs/ for
+Reads from Airtable Certification_Registry, generates PDFs and ZIPs, commits to /packs/ for
 GitHub Pages serving, and updates status fields.
 
-Output URL format: https://ttony106-source.github.io/afgc-registry/packs/<Certification_ID>/<file>.pdf
+Output URL format: https://ttony106-source.github.io/afgc-registry/packs/<Certification_ID>/<file>
 
 OPS RULE: Never delete or modify existing pack files. If correction needed, revoke + reissue.
 """
@@ -15,6 +15,7 @@ import os
 import sys
 import hashlib
 import subprocess
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -58,21 +59,38 @@ def generate_manifest(cert_dir: Path, cert_id: str, files: list, timestamp: str)
         f"{'=' * 50}",
         f"Certification ID: {cert_id}",
         f"Generated UTC: {timestamp}",
-        f"Pack Version: 1.0",
+        f"Pack Version: 1.1",
         f"",
         f"Files:",
         f"-" * 30,
     ]
+    
     for f in files:
         lines.append(f"  {f['name']}")
         lines.append(f"    SHA-256: {f['sha256']}")
         lines.append(f"    Size: {f['size']} bytes")
-    lines.append(f"")
+        lines.append(f"")
+    
     lines.append(f"Verification: Compare SHA-256 hashes to verify file integrity.")
     lines.append(f"Registry: {GITHUB_PAGES_BASE}/registry/")
     
     manifest_path.write_text('\n'.join(lines))
     return manifest_path
+
+
+def generate_zip(cert_dir: Path, cert_id: str, files_to_zip: list) -> tuple:
+    """Generate ZIP archive of the issuance pack and return (path, sha256)."""
+    zip_filename = f"{cert_id}_issuance_pack.zip"
+    zip_path = cert_dir / zip_filename
+    
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for file_path in files_to_zip:
+            if file_path.exists():
+                arcname = file_path.name
+                zf.write(file_path, arcname)
+    
+    zip_sha256 = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+    return zip_path, zip_sha256
 
 
 def generate_pdf(cert_data: dict, output_path: Path) -> str:
@@ -181,25 +199,27 @@ def git_commit_packs():
         subprocess.run(['git', 'push'], check=True)
         print("  Packs committed and pushed to repository")
         return True
-        
+    
     except subprocess.CalledProcessError as e:
         print(f"  Git error: {e}")
         return False
 
 
-def update_airtable_record(table, record_id: str, cert_id: str, sha256: str, success: bool, error_msg: str = None):
+def update_airtable_record(table, record_id: str, cert_id: str, pdf_sha256: str, zip_sha256: str, success: bool, error_msg: str = None):
     """Update Airtable record with issuance pack details."""
     if DRY_RUN:
         print(f"  [DRY RUN] Would update record {record_id}")
         return
     
     pack_url = f"{GITHUB_PAGES_BASE}/packs/{cert_id}/{cert_id}_issuance_pack.pdf"
+    zip_url = f"{GITHUB_PAGES_BASE}/packs/{cert_id}/{cert_id}_issuance_pack.zip"
     
     if success:
         table.update(record_id, {
             'Issuance_Pack_Generated': True,
             'Issuance_Pack_URL': pack_url,
-            'Issuance_Pack_SHA256': sha256,
+            'Issuance_Pack_SHA256': pdf_sha256,
+            'Issuance_Pack_ZIP_URL': zip_url,
             'Issuance_Dispatch_Status': 'Sent',
             'Issuance_Dispatch_At': datetime.now(timezone.utc).isoformat(),
             'Issue_Now': False,
@@ -218,7 +238,7 @@ def main():
         print("Error: Missing required environment variables")
         sys.exit(1)
     
-    print("AFGC Issuance Pack Generator v1.0")
+    print("AFGC Issuance Pack Generator v1.1")
     print(f"Mode: {'DRY RUN' if DRY_RUN else 'LIVE'}")
     print(f"Output: {GITHUB_PAGES_BASE}/packs/")
     print("-" * 50)
@@ -249,23 +269,31 @@ def main():
             output_path = cert_dir / f"{cert_id}_issuance_pack.pdf"
             timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
             
-            sha256 = generate_pdf(cert, output_path)
+            # Generate PDF
+            pdf_sha256 = generate_pdf(cert, output_path)
             print(f"  Generated: {output_path}")
-            print(f"  SHA256: {sha256}")
+            print(f"  PDF SHA256: {pdf_sha256}")
             
             # Generate MANIFEST.txt
             file_size = output_path.stat().st_size
-            manifest_files = [{'name': output_path.name, 'sha256': sha256, 'size': file_size}]
-            generate_manifest(cert_dir, cert_id, manifest_files, timestamp)
-            print(f"  Manifest: {cert_dir}/MANIFEST.txt")
+            manifest_files = [{'name': output_path.name, 'sha256': pdf_sha256, 'size': file_size}]
+            manifest_path = generate_manifest(cert_dir, cert_id, manifest_files, timestamp)
+            print(f"  Manifest: {manifest_path}")
+            
+            # Generate ZIP archive
+            files_to_zip = [output_path, manifest_path]
+            zip_path, zip_sha256 = generate_zip(cert_dir, cert_id, files_to_zip)
+            print(f"  ZIP: {zip_path}")
+            print(f"  ZIP SHA256: {zip_sha256}")
             
             generated.append({
                 'record_id': record_id,
                 'cert_id': cert_id,
-                'sha256': sha256,
+                'pdf_sha256': pdf_sha256,
+                'zip_sha256': zip_sha256,
                 'path': output_path,
             })
-            
+        
         except Exception as e:
             print(f"  Error: {e}")
             failed.append({'record_id': record_id, 'cert_id': cert_id, 'error': str(e)})
@@ -277,14 +305,14 @@ def main():
         for item in generated:
             update_airtable_record(
                 table, item['record_id'], item['cert_id'],
-                item['sha256'], success=commit_success,
+                item['pdf_sha256'], item['zip_sha256'], success=commit_success,
                 error_msg='Git commit failed' if not commit_success else None
             )
             print(f"  Updated: {item['cert_id']}")
     
     for item in failed:
         update_airtable_record(table, item['record_id'], item['cert_id'],
-                               sha256=None, success=False, error_msg=item['error'])
+                              pdf_sha256=None, zip_sha256=None, success=False, error_msg=item['error'])
     
     print(f"\n{'=' * 50}")
     print(f"Processing complete. Generated: {len(generated)}, Failed: {len(failed)}")

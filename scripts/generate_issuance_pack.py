@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AFGC Issuance Pack Generator v1.1
+AFGC Issuance Pack Generator v1.2
 
 Generates PDF/A-2b compliant certification issuance packs for approved certifications.
 Reads from Airtable Certification_Registry, generates PDFs and ZIPs, commits to /packs/ for
@@ -238,7 +238,7 @@ def main():
         print("Error: Missing required environment variables")
         sys.exit(1)
     
-    print("AFGC Issuance Pack Generator v1.1")
+    print("AFGC Issuance Pack Generator v1.2")
     print(f"Mode: {'DRY RUN' if DRY_RUN else 'LIVE'}")
     print(f"Output: {GITHUB_PAGES_BASE}/packs/")
     print("-" * 50)

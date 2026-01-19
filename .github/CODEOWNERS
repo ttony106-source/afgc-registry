@@ -1,0 +1,37 @@
+# CODEOWNERS - CEO Authority Isolation Controls
+# ================================================
+# This file defines code ownership rules to ensure:
+# - CEO is NEVER requested for routine execution PRs
+# - CEO is ONLY requested for authority-binding changes
+# ================================================
+
+# -------------------------------------------------
+# AUTHORITY PATHS - CEO ONLY
+# These paths require explicit CEO approval
+# -------------------------------------------------
+/authority/     @ttony106-source
+/board/         @ttony106-source
+/signatures/    @ttony106-source
+
+# -------------------------------------------------
+# EXECUTION PATHS - NO CEO
+# These paths should NEVER involve the CEO
+# Standard automation and execution workflows
+# -------------------------------------------------
+# /execution/   (automation team - DO NOT add CEO)
+# /validation/  (CI/CD - automated checks)
+# /evidence/    (logs, hashes - automated)
+# /registry/    (data updates - automated)
+# /scripts/     (automation scripts - automated)
+
+# -------------------------------------------------
+# GOVERNANCE DOCUMENTATION
+# Changes to governance rules require CEO review
+# -------------------------------------------------
+/.github/copilot-instructions.md    @ttony106-source
+/.github/CODEOWNERS                 @ttony106-source
+
+# -------------------------------------------------
+# RULE: If a path is NOT listed above with CEO,
+# the CEO must NOT be requested for review.
+# -------------------------------------------------

@@ -51,29 +51,58 @@ def get_pending_certifications(table):
     return table.all(formula=formula)
 
 
-def generate_manifest(cert_dir: Path, cert_id: str, files: list, timestamp: str):
-    """Generate MANIFEST.txt for self-verifying pack."""
-    manifest_path = cert_dir / 'MANIFEST.txt'
+def generate_contents_manifest(cert_dir: Path, cert_id: str, pdf_path: Path, pdf_sha256: str, pdf_size: int, timestamp: str):
+    """Generate CONTENTS_MANIFEST.txt (goes INSIDE ZIP, PDF hash only)."""
+    manifest_path = cert_dir / 'CONTENTS_MANIFEST.txt'
     lines = [
-        f"AFGC Issuance Pack Manifest",
-        f"{'=' * 50}",
-        f"Certification ID: {cert_id}",
-        f"Generated UTC: {timestamp}",
-        f"Pack Version: 1.1",
+        f"AFGC ISSUANCE PACK — CONTENTS MANIFEST",
+        f"Certification_ID: {cert_id}",
+        f"Generated_UTC: {timestamp}",
+        f"Pack_Version: 1.2",
         f"",
-        f"Files:",
-        f"-" * 30,
+        f"FILE",
+        f"1) {pdf_path.name}",
+        f"   Standard: PDF/A-2b",
+        f"   SHA-256: {pdf_sha256}",
+        f"   Size_Bytes: {pdf_size}",
+        f"",
+        f"VERIFICATION",
+        f"- Compute SHA-256 of the PDF and compare to value above.",
     ]
+    manifest_path.write_text('\n'.join(lines))
+    return manifest_path
+
+
+def generate_master_manifest(cert_dir: Path, cert_id: str, pdf_sha256: str, pdf_size: int, 
+                             zip_sha256: str, zip_size: int, timestamp: str):
+    """Generate MANIFEST.txt (MASTER, outside ZIP, includes both PDF + ZIP hashes)."""
+    base_url = f"{GITHUB_PAGES_BASE}/packs/{cert_id}"
+    manifest_path = cert_dir / 'MANIFEST.txt'
     
-    for f in files:
-        lines.append(f"  {f['name']}")
-        lines.append(f"    SHA-256: {f['sha256']}")
-        lines.append(f"    Size: {f['size']} bytes")
-        lines.append(f"")
-    
-    lines.append(f"Verification: Compare SHA-256 hashes to verify file integrity.")
-    lines.append(f"Registry: {GITHUB_PAGES_BASE}/registry/")
-    
+    lines = [
+        f"AFGC ISSUANCE PACK — MASTER MANIFEST",
+        f"Certification_ID: {cert_id}",
+        f"Generated_UTC: {timestamp}",
+        f"Pack_Version: 1.2",
+        f"Base_URL: {base_url}/",
+        f"",
+        f"FILES",
+        f"1) {cert_id}_issuance_pack.pdf",
+        f"   Standard: PDF/A-2b",
+        f"   SHA-256: {pdf_sha256}",
+        f"   Size_Bytes: {pdf_size}",
+        f"   URL: {base_url}/{cert_id}_issuance_pack.pdf",
+        f"",
+        f"2) {cert_id}_issuance_pack.zip",
+        f"   SHA-256: {zip_sha256}",
+        f"   Size_Bytes: {zip_size}",
+        f"   URL: {base_url}/{cert_id}_issuance_pack.zip",
+        f"",
+        f"VERIFICATION",
+        f"- Verify PDF integrity: compute SHA-256 of the PDF and compare to item (1).",
+        f"- Verify ZIP integrity: compute SHA-256 of the ZIP and compare to item (2).",
+        f"- ZIP includes CONTENTS_MANIFEST.txt for internal file verification.",
+    ]
     manifest_path.write_text('\n'.join(lines))
     return manifest_path
 
@@ -220,6 +249,7 @@ def update_airtable_record(table, record_id: str, cert_id: str, pdf_sha256: str,
             'Issuance_Pack_URL': pack_url,
             'Issuance_Pack_SHA256': pdf_sha256,
             'Issuance_Pack_ZIP_URL': zip_url,
+            'Issuance_Pack_ZIP_SHA256': zip_sha256,
             'Issuance_Dispatch_Status': 'Sent',
             'Issuance_Dispatch_At': datetime.now(timezone.utc).isoformat(),
             'Issue_Now': False,
@@ -271,20 +301,24 @@ def main():
             
             # Generate PDF
             pdf_sha256 = generate_pdf(cert, output_path)
+            pdf_size = output_path.stat().st_size
             print(f"  Generated: {output_path}")
             print(f"  PDF SHA256: {pdf_sha256}")
             
-            # Generate MANIFEST.txt
-            file_size = output_path.stat().st_size
-            manifest_files = [{'name': output_path.name, 'sha256': pdf_sha256, 'size': file_size}]
-            manifest_path = generate_manifest(cert_dir, cert_id, manifest_files, timestamp)
-            print(f"  Manifest: {manifest_path}")
+            # Generate CONTENTS_MANIFEST.txt (PDF hash only, goes inside ZIP)
+            contents_manifest_path = generate_contents_manifest(cert_dir, cert_id, output_path, pdf_sha256, pdf_size, timestamp)
+            print(f"  Contents Manifest: {contents_manifest_path}")
             
-            # Generate ZIP archive
-            files_to_zip = [output_path, manifest_path]
+            # Generate ZIP archive (contains PDF + CONTENTS_MANIFEST)
+            files_to_zip = [output_path, contents_manifest_path]
             zip_path, zip_sha256 = generate_zip(cert_dir, cert_id, files_to_zip)
+            zip_size = zip_path.stat().st_size
             print(f"  ZIP: {zip_path}")
             print(f"  ZIP SHA256: {zip_sha256}")
+            
+            # Generate MASTER MANIFEST.txt (PDF + ZIP hashes, OUTSIDE ZIP)
+            master_manifest_path = generate_master_manifest(cert_dir, cert_id, pdf_sha256, pdf_size, zip_sha256, zip_size, timestamp)
+            print(f"  Master Manifest: {master_manifest_path}")
             
             generated.append({
                 'record_id': record_id,

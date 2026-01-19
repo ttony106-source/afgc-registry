@@ -1,0 +1,9 @@
+# CEO Authority Zone
+# This directory contains authority-binding documents that require explicit CEO approval.
+# Changes to this directory trigger the CEO-APPROVAL environment gate.
+# 
+# RULES:
+# - ONLY the CEO may approve changes to files in this directory
+# - All changes must go through pull request review
+# - Automation is BLOCKED from this directory
+# - Each change is logged and audited

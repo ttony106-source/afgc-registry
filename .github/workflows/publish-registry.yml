@@ -40,6 +40,7 @@ jobs:
           node scripts/build_registry.mjs
 
       - name: Create Pull Request (if registry changed)
+              id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -51,6 +52,34 @@ jobs:
           add-paths: |
             registry/afgc-registry.json
             registry/afgc-registry.schema.json
+                  - name: Enable auto-merge (squash) when checks pass
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = Number(process.env.PR_NUMBER);
+            const { owner, repo } = context.repo;
+
+            // Enable auto-merge (squash). Requires "Allow auto-merge" enabled in repo settings.
+            await github.graphql(`
+              mutation($pullRequestId: ID!) {
+                enablePullRequestAutoMerge(input: {
+                  pullRequestId: $pullRequestId,
+                  mergeMethod: SQUASH
+                }) { pullRequest { number } }
+              }
+            `, {
+              pullRequestId: (await github.graphql(`
+                query($owner:String!, $repo:String!, $number:Int!) {
+                  repository(owner:$owner, name:$repo) {
+                    pullRequest(number:$number) { id }
+                  }
+                }
+              `, { owner, repo, number: prNumber })).repository.pullRequest.id
+            });
+        env:
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

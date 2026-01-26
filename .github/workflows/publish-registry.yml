@@ -9,6 +9,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+    pull-requests: write
 
 concurrency:
   group: "pages"
@@ -38,18 +39,18 @@ jobs:
         run: |
           node scripts/build_registry.mjs
 
-      - name: Commit changes (if any)
-        run: |
-          git config user.name "afgc-registry-bot"
-          git config user.email "afgc-registry-bot@users.noreply.github.com"
-          git add registry/afgc-registry.json registry/afgc-registry.schema.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Update registry JSON"
-            git push
-          fi
-
+      - name: Create Pull Request (if registry changed)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update registry JSON"
+          title: "Update registry JSON"
+          body: "Automated update from scheduled build-and-publish."
+          branch: "bot/registry-update"
+          delete-branch: true
+          add-paths: |
+            registry/afgc-registry.json
+            registry/afgc-registry.schema.json
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
